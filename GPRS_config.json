@@ -1,0 +1,14 @@
+{
+"ip" : "10.10.156.119",
+"port" : 51111,
+"data_dir" : "./data",
+"email_receiver" : [
+    ],
+
+    "email_sender" : {
+        "host" : "smtp.163.com",
+        "user" : "snowobservation",
+        "pass" : "xxxxxxxxxxxxxx",
+        "postfix" : "163.com"
+    }
+}
