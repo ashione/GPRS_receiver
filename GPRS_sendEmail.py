@@ -56,7 +56,7 @@ def send_mail(sub,content,to_str=None,att='window.py'):
         return False
 
 if __name__ == '__main__':
-    if send_mail("来自(测试)","正在做使用信息邮件群发的测试，请不要回信，可以无视之。",att='./data/2015-12-28.txt'):
+    if send_mail("data of text","don't reply",att='./data/2015-12-29.txt'):
         print "发送成功"
     else:
         print "发送失败"

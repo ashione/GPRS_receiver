@@ -15,14 +15,14 @@ class Swither(object):
         self.main_window = (master)
         self.main_window.title('GPRS Receiver')
         self.ip_hint_string = StringVar()
-        self.ip_hint_label = Label(self.main_window,textvariable=self.ip_hint_string,relief=RAISED)
+        self.ip_hint_btn = Button(self.main_window,textvariable=self.ip_hint_string,relief=RAISED,command = self.btn_alter_ip)
         self.ip_hint_string.set('IP')
-        self.ip_hint_label.grid(row=0,column=0,sticky=W,padx=10,pady=10)
+        self.ip_hint_btn.grid(row=0,column=0,sticky=W,padx=10,pady=10)
 
         self.hint_string = StringVar()
-        self.hint_label = Label(self.main_window,textvariable=self.hint_string,relief=RAISED)
+        self.port_hint_btn = Button(self.main_window,textvariable=self.hint_string,relief=RAISED,command= self.btn_alter_port)
         self.hint_string.set('Port')
-        self.hint_label.grid(row=1,column=0,sticky=W,padx=10,pady=10)
+        self.port_hint_btn.grid(row=1,column=0,sticky=W,padx=10,pady=10)
 
         self.port_var = StringVar()
         self.port_entry = Entry(self.main_window,textvariable=self.port_var)
@@ -34,11 +34,10 @@ class Swither(object):
 
         self.bt_start = Button(self.main_window,text='Start',command=self.listen)
         self.bt_start.grid(row=0,column=2,padx=5,pady=5)
-
         self.bt_halt = Button(self.main_window,text='Halt',command=self.stop)
         self.bt_halt.grid(row=1,column=2,padx=5,pady=5)
 
-        self.bt_set_directory = Button(self.main_window,text='Directory')
+        self.bt_set_directory = Button(self.main_window,text='Directory',command = self.btn_alter_directory)
         self.bt_set_directory.grid(row=2,column=2,padx=5,pady=5)
 
         self.directory_var = StringVar()
@@ -46,7 +45,7 @@ class Swither(object):
         self.directory_entry.grid(row=2,column=1,columnspan=2,sticky=W)
 
         self.receiver_data = Text(self.main_window)
-        self.receiver_data.grid(row=3,column=0,columnspan=3,padx=3,pady=3)
+        self.receiver_data.grid(row=6,column=0,columnspan=3,padx=3,pady=3)
         self.scroll = Scrollbar(self.main_window, command=self.receiver_data.yview)
         self.receiver_data.configure(yscrollcommand=self.scroll.set)
         #self.scroll.pack(side=RIGHT,fill=Y)
@@ -57,13 +56,52 @@ class Swither(object):
         #self.socket = GPRS_socket()
         self.queue_data = Queue.Queue()
         #self.thread = GPRS_thread(1,self.socket.listening,self.queue_data)
-
         self.read_text()
+
+        self.listbox = Listbox(self.main_window)
+        self.listbox.grid(row=3,column=0,padx=3,pady=3,rowspan=3)
+        self.bt_delt_list = Button(self.main_window,text='Delete',command=self.btn_listbox_del)
+        self.bt_delt_list.grid(row=3,column=1,sticky=W)
+        self.bt_add_list = Button(self.main_window,text='Add User',command=self.btn_listbox_add)
+        self.bt_add_list.grid(row=4,column=1,sticky=W)
+
+        self.email_var = StringVar()
+        self.email_entry = Entry(self.main_window,textvariable=self.email_var)
+        self.email_entry.grid(row=5,column=1,sticky=W)
+
+        self.read_receiver_list()
+
         self.main_window.protocol('WM_DELETE_WINDOW',self.on_close)
+
+    def read_receiver_list(self):
+        self.receiver_list = GPRS_data_operator.read_email_receiver()
+        for item in self.receiver_list :
+            self.listbox.insert(END,item)
+
+    def btn_alter_directory(self):
+        GPRS_data_operator.alter_directory(self.directory_var.get())
+    def btn_alter_ip(self):
+        GPRS_data_operator.alter_ip(self.ip_var.get())
+    def btn_alter_port(self):
+        GPRS_data_operator.alter_port(self.port_var.get())
+
+    def btn_listbox_del(self):
+        index_tuple =  self.listbox.curselection()
+        print index_tuple[0]
+        del self.receiver_list[index_tuple[0]]
+        GPRS_data_operator.alter_email_receiver(self.receiver_list)
+        self.listbox.delete(index_tuple[0])
+
+    def btn_listbox_add(self):
+        new_email = self.email_var.get()
+        self.receiver_list.append(new_email)
+        GPRS_data_operator.alter_email_receiver(self.receiver_list)
+        self.listbox.insert(END,new_email)
+
     def read_text(self):
         data_config = GPRS_data_operator.read_config()
         data_time = time.strftime('%Y%m%d')
-        data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.txt'))
+        data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.dat'))
         self.ip_var.set(data_config['ip'])
         self.port_var.set(data_config['port'])
         self.directory_var.set(data_config['data_dir'])
@@ -95,7 +133,7 @@ class Swither(object):
         try :
             GPRS_SendEmail(sub='Data of '+send_date,
                         content='There is auto-sender of GPRS_receiver',
-                        att=os.path.join(temp_config['data_dir'],send_date+'.txt'))
+                        att=os.path.join(temp_config['data_dir'],send_date+'.dat'))
             print send_mail,': send email ok!'
         except Exception as msg:
             print 'send email faild,',msg

@@ -3,11 +3,13 @@ import json
 class GPRS_data_operator(object):
     def __init__(self,absfile):
         self.file = absfile
+        #self.file.replace('.txt','.dat')
 
     @staticmethod
     def read_config():
         with open('GPRS_config.json') as config_file:
             data = json.load(config_file)
+            config_file.close()
         return data
 
     @staticmethod
@@ -19,6 +21,36 @@ class GPRS_data_operator(object):
     def read_email_sender():
         data = GPRS_data_operator.read_config()
         return data['email_sender']
+
+    @staticmethod
+    def alter_atrribute(key,value):
+        with open('GPRS_config.json','r+') as config_file:
+            try :
+                data = json.load(config_file)
+                data[key] = value
+            except Exception as msg:
+                print msg
+                return
+
+        with open('GPRS_config.json','w') as config_file:
+            json.dump(data,config_file,indent=4)
+            config_file.close()
+
+    @staticmethod
+    def alter_directory(directory_str):
+        GPRS_data_operator.alter_atrribute('data_dir',directory_str)
+
+    @staticmethod
+    def alter_ip(ip):
+        GPRS_data_operator.alter_atrribute('ip',ip)
+
+    @staticmethod
+    def alter_port(port):
+        GPRS_data_operator.alter_atrribute('port',int(port))
+
+    @staticmethod
+    def alter_email_receiver(receiver):
+        GPRS_data_operator.alter_atrribute('email_receiver',receiver)
 
     def read_data(self):
         try :
