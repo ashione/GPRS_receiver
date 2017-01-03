@@ -9,49 +9,51 @@ class GPRS_socket(object):
        self.server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
        #self.server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,75)
        self.server.bind((ip,port))
-       socket.setdefaulttimeout(300)
+       socket.setdefaulttimeout(600)
        self.server.listen(5)
        #self.inputs = [self.server]
 
     def listening(self,queue):
         assert isinstance(queue,Queue.Queue)
-        #inputs = [self.server]
-        while True:
-            #clientsock,clientaddr = self.server.accept()
-            #rs,ws,es = select.select(inputs,[],[],5)
-            #for r in rs:
-            #    if r is self.server:
-            #        clientsock,clientaddr = r.accept()
-            #        inputs.append(clientsock)
-            #    else :
-            #        data = r.recv(0xfff)
-            #        #if not data:
-            #            #inputs.remove(r)
-            #        if data :
-            #            print data,'Incomming from ',clientaddr
-            #            queue.put(data)
-            #            data_config = GPRS_data_operator.read_config()
-            #            data_time = time.strftime('%Y%m%d')
-            #            data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.txt'))
-            #            data_operator.write_data(data)
-            conn,addr = self.server.accept()
-            print addr,'is connected!'
-            try :
-                data = conn.recv(2048)
-                if len(data)>0:
-                    print data,'Incomming from ',addr
-                    data_config = GPRS_data_operator.read_config()
-                    data_time = time.strftime('%Y%m%d')
-                    data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.txt'))
-                    data_operator.write_data(data)
-                    queue.put(data)
+        inputs = [self.server]
+        while inputs:
+            rs,ws,es = select.select(inputs,[],[],5)
+            for r in rs:
+                if r is self.server:
+                    clientsock,clientaddr = r.accept() 
+                    inputs.append(clientsock)
                 else :
-                    conn.shutdown(socket.SHUT_RDWR)
-                    conn.close()
-            except Exception as msg:
-                conn.shutdown(socket.SHUT_RDWR)
-                conn.close()
-                print msg
+                    data = r.recv(2048)
+                    #if not data:
+                        #inputs.remove(r)
+                    if data :
+                        print data,'Incomming from ',clientaddr
+                        queue.put(data)
+                        data_config = GPRS_data_operator.read_config()
+                        data_time = time.strftime('%Y%m%d')
+                        #data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.txt'))
+                        data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.dat'))
+                        data_operator.write_data(data)
+            #print 'before'
+            #conn,addr = self.server.accept()
+            #print addr,'is connected!'
+            #try :
+            #    data = conn.recv(2048)
+            #    if len(data)>0:
+            #        print data,'Incomming from ',addr
+            #        data_config = GPRS_data_operator.read_config()
+            #        data_time = time.strftime('%Y%m%d')
+            #        data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.dat'))
+            #        data_operator.write_data(data)
+            #        queue.put(data)
+            #    else :
+            #        conn.shutdown(socket.SHUT_RDWR)
+            #        conn.close()
+            #except Exception as msg:
+            #    conn.shutdown(socket.SHUT_RDWR)
+            #    conn.close()
+            #    print msg
+            #print 'after'
 
     def recv(self,queue):
         while True:
@@ -61,7 +63,7 @@ class GPRS_socket(object):
                 queue.put(data)
                 data_config = GPRS_data_operator.read_config()
                 data_time = time.strftime('%Y-%m-%d')
-                data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.txt'))
+                data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.dat'))
                 data_operator.write_data(data)
             except Exception,e:
                 print e
