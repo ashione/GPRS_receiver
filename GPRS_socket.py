@@ -34,6 +34,10 @@ class GPRS_socket(object):
                         #data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.txt'))
                         data_operator = GPRS_data_operator(os.path.join(data_config['data_dir'],data_time+'.dat'))
                         data_operator.write_data(data)
+                    else :
+                        print 'no data comming, closing'
+                        inputs.remove(r)
+
             #print 'before'
             #conn,addr = self.server.accept()
             #print addr,'is connected!'
